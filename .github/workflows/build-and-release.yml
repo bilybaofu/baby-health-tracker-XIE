@@ -20,16 +20,8 @@ jobs:
         include:
           - os: windows-latest
             platform: win
-            arch: x64
-          - os: windows-latest
-            platform: win
-            arch: ia32
           - os: macos-latest
             platform: mac
-            arch: x64
-          - os: macos-latest
-            platform: mac
-            arch: arm64
 
     steps:
     - name: Checkout repository
@@ -39,19 +31,11 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '18'
-        cache: 'npm'
-
-    - name: Create placeholder icons
-      run: |
-        mkdir -p build
-        # 创建简单的占位符图标（使用ImageMagick或其他工具）
-        # 这里我们先创建空文件，实际使用时需要真正的图标
-        touch build/icon.ico
-        touch build/icon.png
-      shell: bash
+        # 移除cache配置避免锁定文件问题
 
     - name: Install dependencies
-      run: npm install
+      run: |
+        npm install --no-package-lock
 
     - name: Build application for Windows
       if: matrix.platform == 'win'
@@ -64,18 +48,14 @@ jobs:
       run: npm run build-mac
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        # 对于macOS代码签名（可选）
-        # CSC_LINK: ${{ secrets.MAC_CERTS }}
-        # CSC_KEY_PASSWORD: ${{ secrets.MAC_CERTS_PASSWORD }}
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ matrix.platform }}-${{ matrix.arch }}-build
+        name: ${{ matrix.platform }}-build
         path: |
           dist/*.exe
           dist/*.dmg
-          dist/*.AppImage
           dist/*.zip
         retention-days: 30
 
@@ -123,7 +103,6 @@ jobs:
           **Mac用户：**
           - `*.dmg` - macOS安装包
           - 支持macOS 10.13及以上版本
-          - 包含Intel和Apple Silicon版本
           
           ### 🔧 安装指南
           1. 下载对应系统的安装包

@@ -16,6 +16,7 @@ function createWindow() {
             nodeIntegration: false,
             contextIsolation: true,
             enableRemoteModule: false,
+            webSecurity: false,  // 允许加载本地资源
             preload: path.join(__dirname, 'preload.js')
         },
         titleBarStyle: 'default',
@@ -53,9 +54,6 @@ function createWindow() {
         shell.openExternal(url);
         return { action: 'deny' };
     });
-
-    // 开发时开启开发者工具（可选）
-    // mainWindow.webContents.openDevTools();
 }
 
 // 创建菜单
@@ -169,12 +167,6 @@ Node.js ${process.versions.node}`,
                             buttons: ['确定'],
                             noLink: true
                         });
-                    }
-                },
-                {
-                    label: 'GitHub仓库',
-                    click: () => {
-                        shell.openExternal('https://github.com/你的用户名/baby-health-tracker');
                     }
                 }
             ]

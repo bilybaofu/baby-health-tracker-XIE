@@ -1,0 +1,78 @@
+{
+  "name": "baby-health-tracker",
+  "version": "1.0.0",
+  "description": "婴幼儿健康追踪系统 - 基于WHO 2006标准",
+  "main": "main.js",
+  "homepage": "https://github.com/你的用户名/baby-health-tracker",
+  "author": {
+    "name": "您的名字",
+    "email": "您的邮箱"
+  },
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "build-win": "electron-builder --win",
+    "build-mac": "electron-builder --mac",
+    "dist": "electron-builder --publish=never"
+  },
+  "devDependencies": {
+    "electron": "^25.9.0",
+    "electron-builder": "^24.6.4"
+  },
+  "build": {
+    "appId": "com.babytracker.healthapp",
+    "productName": "婴幼儿健康追踪系统",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "main.js",
+      "preload.js",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "src/",
+        "to": "app/src/",
+        "filter": ["**/*"]
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64", "ia32"]
+        }
+      ],
+      "icon": "build/icon.ico"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        }
+      ],
+      "icon": "build/icon.png",
+      "category": "public.app-category.healthcare-fitness"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "婴幼儿健康追踪系统"
+    }
+  }
+}

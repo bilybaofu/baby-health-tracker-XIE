@@ -25,24 +25,24 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '18'
-        cache: 'npm'
+        # 移除cache配置避免锁定文件问题
     
-    - name: Create placeholder icons
+    - name: Install dependencies
       run: |
-        mkdir build
-        echo "" > build/icon.ico
-        echo "" > build/icon.png
+        npm install --no-package-lock
     
-    - name: Install and build
+    - name: Build Windows app
       run: |
-        npm install
         npm run build-win
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     
     - name: Upload Windows build
       uses: actions/upload-artifact@v4
       with:
         name: windows-build
         path: dist/
+        retention-days: 7
 
   build-mac:
     if: ${{ github.event.inputs.platform == 'all' || github.event.inputs.platform == 'mac' }}
@@ -55,21 +55,21 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '18'
-        cache: 'npm'
+        # 移除cache配置避免锁定文件问题
     
-    - name: Create placeholder icons
+    - name: Install dependencies
       run: |
-        mkdir -p build
-        touch build/icon.ico
-        touch build/icon.png
+        npm install --no-package-lock
     
-    - name: Install and build
+    - name: Build Mac app
       run: |
-        npm install
         npm run build-mac
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     
     - name: Upload Mac build
       uses: actions/upload-artifact@v4
       with:
         name: mac-build
         path: dist/
+        retention-days: 7

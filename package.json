@@ -1,52 +1,48 @@
 {
-  "name": "baby-health-tracker",
+  "name": "baby-health-tracker-desktop",
   "version": "1.0.0",
-  "description": "婴幼儿健康追踪系统 - 基于WHO 2006标准",
-  "main": "main.js",
-  "homepage": "https://github.com/你的用户名/baby-health-tracker",
-  "author": {
-    "name": "您的名字",
-    "email": "您的邮箱"
-  },
-  "license": "MIT",
+  "description": "婴幼儿生长发育百分位计算系统 - 桌面应用版本",
+  "main": "public/electron.js",
+  "homepage": "./",
   "scripts": {
     "start": "electron .",
+    "dev": "electron . --dev",
     "build": "electron-builder",
     "build-win": "electron-builder --win",
     "build-mac": "electron-builder --mac",
-    "dist": "electron-builder --publish=never"
-  },
-  "devDependencies": {
-    "electron": "^25.9.0",
-    "electron-builder": "^24.6.4"
+    "build-linux": "electron-builder --linux",
+    "build-all": "electron-builder --win --mac --linux",
+    "dist": "npm run build",
+    "postinstall": "electron-builder install-app-deps"
   },
   "build": {
-    "appId": "com.babytracker.healthapp",
+    "appId": "com.babytracker.desktop",
     "productName": "婴幼儿健康追踪系统",
     "directories": {
-      "output": "dist"
+      "output": "dist",
+      "buildResources": "assets"
     },
     "files": [
+      "public/**/*",
       "src/**/*",
-      "main.js",
-      "preload.js",
-      "package.json"
+      "node_modules/**/*"
     ],
-    "extraResources": [
-      {
-        "from": "src/",
-        "to": "app/src/",
-        "filter": ["**/*"]
-      }
-    ],
+    "extraMetadata": {
+      "main": "public/electron.js"
+    },
     "win": {
       "target": [
         {
           "target": "nsis",
           "arch": ["x64", "ia32"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64", "ia32"]
         }
       ],
-      "icon": "build/icon.ico"
+      "icon": "assets/icon.ico",
+      "requestedExecutionLevel": "asInvoker"
     },
     "mac": {
       "target": [
@@ -55,7 +51,7 @@
           "arch": ["x64", "arm64"]
         }
       ],
-      "icon": "build/icon.png",
+      "icon": "assets/icon.png",
       "category": "public.app-category.healthcare-fitness"
     },
     "linux": {
@@ -65,7 +61,8 @@
           "arch": ["x64"]
         }
       ],
-      "icon": "build/icon.png"
+      "icon": "assets/icon.png",
+      "category": "Education"
     },
     "nsis": {
       "oneClick": false,
@@ -73,6 +70,26 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "婴幼儿健康追踪系统"
+    },
+    "dmg": {
+      "title": "婴幼儿健康追踪系统安装",
+      "icon": "assets/icon.png"
     }
+  },
+  "devDependencies": {
+    "electron": "^27.0.0",
+    "electron-builder": "^24.6.4"
+  },
+  "dependencies": {
+    "electron-updater": "^6.1.4"
+  },
+  "author": {
+    "name": "你的名字",
+    "email": "你的邮箱"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/你的用户名/baby-health-tracker-desktop.git"
   }
 }

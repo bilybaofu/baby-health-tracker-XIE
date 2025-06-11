@@ -1,0 +1,75 @@
+name: Manual Build (快速构建)
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: '选择构建平台'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+        - all
+        - windows
+        - mac
+
+jobs:
+  build-windows:
+    if: ${{ github.event.inputs.platform == 'all' || github.event.inputs.platform == 'windows' }}
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Create placeholder icons
+      run: |
+        mkdir build
+        echo "" > build/icon.ico
+        echo "" > build/icon.png
+    
+    - name: Install and build
+      run: |
+        npm install
+        npm run build-win
+    
+    - name: Upload Windows build
+      uses: actions/upload-artifact@v4
+      with:
+        name: windows-build
+        path: dist/
+
+  build-mac:
+    if: ${{ github.event.inputs.platform == 'all' || github.event.inputs.platform == 'mac' }}
+    runs-on: macos-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Create placeholder icons
+      run: |
+        mkdir -p build
+        touch build/icon.ico
+        touch build/icon.png
+    
+    - name: Install and build
+      run: |
+        npm install
+        npm run build-mac
+    
+    - name: Upload Mac build
+      uses: actions/upload-artifact@v4
+      with:
+        name: mac-build
+        path: dist/

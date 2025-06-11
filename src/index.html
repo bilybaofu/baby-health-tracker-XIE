@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍼 婴幼儿健康追踪系统</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- 引入Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- 可爱的头部 -->
+        <div class="header">
+            <h1>🍼 婴幼儿健康追踪系统</h1>
+            <p>💕 基于WHO 2006标准的智能生长发育监测工具 (百度OCR版)</p>
+        </div>
+
+        <!-- 可爱的标签页导航 -->
+        <div class="tabs">
+            <div class="tab-button active" data-tab="basic-info">
+                👶 宝宝基本信息
+            </div>
+            <div class="tab-button" data-tab="upload">
+                📤 上传体检报告
+            </div>
+            <div class="tab-button" data-tab="manual">
+                ✏️ 添加体检记录
+            </div>
+            <div class="tab-button" data-tab="records">
+                📈 历史体检记录
+            </div>
+            <div class="tab-button" data-tab="chart">
+                📊 生长曲线图
+            </div>
+            <div class="tab-button" data-tab="feeding">
+                🍼 个性化喂养指导
+            </div>
+            <div class="tab-button" data-tab="settings">
+                🔧 系统设置
+            </div>
+        </div>
+
+        <!-- 基本信息页面 -->
+        <div id="basic-info" class="tab-content active">
+            <div class="card cute-card">
+                <h3>👶 宝宝基本信息</h3>
+                <div class="info-box warning">
+                    <h4>🌟 重要提示</h4>
+                    <p>请先完整填写宝宝的基本信息（姓名、性别、出生日期），然后才能上传体检报告或添加体检记录。系统将根据出生日期自动计算精确的月龄。</p>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-col">
+                        <label for="babyName">👶 宝宝姓名:</label>
+                        <input type="text" id="babyName" placeholder="请输入宝宝姓名">
+                    </div>
+                    <div class="form-col">
+                        <label for="babyGender">⚧️ 性别:</label>
+                        <select id="babyGender">
+                            <option value="">请选择性别</option>
+                            <option value="male">👦 男宝</option>
+                            <option value="female">👧 女宝</option>
+                        </select>
+                    </div>
+                    <div class="form-col">
+                       <label for="babyBirthDate">🎂 出生日期:</label>
+                       <input type="date" id="babyBirthDate" required>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="card cute-card">
+                <h3>📊 当前状态</h3>
+                <div class="percentiles">
+                    <div class="percentile-item">
+                        <span class="percentile-label">当前年龄(月)</span>
+                        <span id="currentAge" class="percentile-value">--</span>
+                    </div>
+                    <div class="percentile-item">
+                        <span class="percentile-label">当前身高(cm)</span>
+                        <span id="currentHeight" class="percentile-value">--</span>
+                    </div>
+                    <div class="percentile-item">
+                        <span class="percentile-label">当前体重(kg)</span>
+                        <span id="currentWeight" class="percentile-value">--</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 上传体检报告页面 -->
+        <div id="upload" class="tab-content">
+            <div class="card cute-card">
+                <h3>📤 上传体检报告</h3>
+                <p>上传体检报告图片，系统将使用百度OCR自动识别并提取相关数据</p>
+                
+                <div class="upload-area" onclick="document.getElementById('reportUpload').click()">
+                    <div class="upload-icon">📷</div>
+                    <div class="upload-text">点击或拖拽图片到此处</div>
+                    <div class="upload-hint">支持 JPG、PNG、WEBP 格式，大小不超过10MB</div>
+                </div>
+                <input type="file" id="reportUpload" accept="image/*">
+            </div>
+
+            <!-- 加载状态 -->
+            <div id="loadingMessage" class="loading hidden">
+                <div class="loading-spinner"></div>
+                <span>正在分析中，请稍候...</span>
+            </div>
+
+            <!-- 图片预览 -->
+            <div id="uploadedImage" class="card cute-card hidden">
+                <h3>📷 上传的图片</h3>
+                <img id="previewImage" style="max-width: 100%; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
+            </div>
+        </div>
+
+        <!-- 手动添加记录页面 -->
+        <div id="manual" class="tab-content">
+            <div class="card cute-card">
+                <h3>✏️ 添加体检记录</h3>
+                
+                <div class="form-row">
+                <label for="checkDate">📅 体检日期:</label>
+                <input type="date" id="checkDate" required>
+            </div>
+
+                    <div class="form-col">
+                        <label for="ageMonths">👶 年龄(月):</label>
+                        <input type="number" id="ageMonths" step="0.1" placeholder="例如: 6.5">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-col">
+                        <label for="height">📏 身高(cm):</label>
+                        <input type="number" id="height" step="0.1" placeholder="例如: 65.5">
+                    </div>
+                    <div class="form-col">
+                        <label for="weight">⚖️ 体重(kg):</label>
+                        <input type="number" id="weight" step="0.1" placeholder="例如: 7.2">
+                    </div>
+                    <div class="form-col">
+                        <label for="headCircumference">🧠 头围(cm):</label>
+                        <input type="number" id="headCircumference" step="0.1" placeholder="例如: 42.5">
+                    </div>
+                </div>
+
+                <!-- 实时百分位显示 -->
+                <div class="percentiles">
+                    <div class="percentile-item">
+                        <span class="percentile-label">身高百分位</span>
+                        <span id="heightPercentile" class="percentile-value">--</span>
+                    </div>
+                    <div class="percentile-item">
+                        <span class="percentile-label">体重百分位</span>
+                        <span id="weightPercentile" class="percentile-value">--</span>
+                    </div>
+                    <div class="percentile-item">
+                        <span class="percentile-label">头围百分位</span>
+                        <span id="headPercentile" class="percentile-value">--</span>
+                    </div>
+                </div>
+
+                <div class="text-center">
+                    <button id="addRecordBtn" class="btn btn-primary">✨ 添加记录</button>
+                    <button id="clearFormBtn" class="btn btn-secondary">🗑️ 清空表单</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 历史记录页面 -->
+        <div id="records" class="tab-content">
+            <div class="card cute-card">
+                <div class="records-header">
+                    <h3>📈 历史体检记录</h3>
+                    <div>
+                        <button id="clearAllRecordsBtn" class="btn btn-danger">🗑️ 一键清除记录</button>
+                        <button id="exportBtn" class="btn btn-success">💾 导出数据</button>
+                        <button id="importBtn" class="btn btn-success">📥 导入数据</button>
+                    </div>
+                </div>
+                
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>📅 体检日期</th>
+                                <th>👶 年龄</th>
+                                <th>📏 身高(cm)</th>
+                                <th>📊 身高百分位</th>
+                                <th>⚖️ 体重(kg)</th>
+                                <th>📊 体重百分位</th>
+                                <th>🧠 头围(cm)</th>
+                                <th>📊 头围百分位</th>
+                                <th>🛠️ 操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recordsTableBody">
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="noRecords" class="text-center" style="display: none; padding: 40px;">
+                    <h4>🤔 暂无体检记录，请先添加记录</h4>
+                </div>
+
+                <div id="statisticsInfo">
+                    <h4>📊 统计信息</h4>
+                    <p>暂无数据</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 生长曲线图页面 -->
+        <div id="chart" class="tab-content">
+            <div class="card cute-card">
+                <h3>📊 生长曲线图</h3>
+                
+                <!-- 图表类型选择器 -->
+                <div class="chart-type-selector">
+                    <label>
+                        <input type="radio" name="chartType" value="height" checked>
+                        <span>📏 身高曲线</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="chartType" value="weight">
+                        <span>⚖️ 体重曲线</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="chartType" value="headCircumference">
+                        <span>🧠 头围曲线</span>
+                    </label>
+                </div>
+
+                <!-- 图表说明 -->
+                <div class="chart-legend">
+                    <h4>📊 图表说明</h4>
+                    <div class="chart-legend-items">
+                        <div class="chart-legend-item">
+                            <div class="chart-legend-color" style="background-color: #ff6b6b;"></div>
+                            <span>■ -2SD (3%) ■ +2SD (97%)</span>
+                        </div>
+                        <div class="chart-legend-item">
+                            <div class="chart-legend-color" style="background-color: #ffa726;"></div>
+                            <span>■ -1SD (15%) ■ +1SD (85%)</span>
+                        </div>
+                        <div class="chart-legend-item">
+                            <div class="chart-legend-color" style="background-color: #4caf50;"></div>
+                            <span>■ 50%百分位 (平均值)</span>
+                        </div>
+                        <div class="chart-legend-item">
+                            <div class="chart-legend-color" style="background-color: #2196f3;"></div>
+                            <span>🍼 宝宝实际数据</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 图表容器 -->
+                <div class="chart-container">
+                    <canvas id="growthChart"></canvas>
+                </div>
+
+                <!-- 生长趋势分析 -->
+                <div class="chart-analysis">
+                    <h4>📈 生长趋势分析</h4>
+                    <ul>
+                        <li>🌈 正常范围：-2SD 到 +2SD 之间（3% - 97%）</li>
+                        <li>⭐ 理想范围：-1SD 到 +1SD 之间（15% - 85%）</li>
+                        <li>⚠️ 如果数据点连续偏离正常范围，建议咨询儿科医生</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 个性化喂养指导页面 -->
+        <div id="feeding" class="tab-content">
+            <div class="card cute-card">
+                <h3>🍼 个性化喂养指导</h3>
+                <p>基于您孩子的年龄、身高和体重，获取个性化的喂养建议</p>
+                
+                <div class="percentiles">
+                    <div class="percentile-item">
+                        <span class="percentile-label">当前年龄</span>
+                        <span id="feedingAge" class="percentile-value">--</span>
+                    </div>
+                    <div class="percentile-item">
+                        <span class="percentile-label">当前身高</span>
+                        <span id="feedingHeight" class="percentile-value">--</span>
+                    </div>
+                    <div class="percentile-item">
+                        <span class="percentile-label">当前体重</span>
+                        <span id="feedingWeight" class="percentile-value">--</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="feedingConcerns">🎯 重点关注问题（可选）:</label>
+                    <textarea id="feedingConcerns" rows="3" placeholder="例如：宝宝最近食欲不佳，体重增长缓慢..."></textarea>
+                </div>
+
+                <div class="text-center">
+                    <button id="generateFeedingBtn" class="btn btn-primary">🤖 生成AI喂养建议</button>
+                </div>
+
+                <!-- 加载状态 -->
+                <div id="feedingLoading" class="loading hidden">
+                    <div class="loading-spinner"></div>
+                    <span>正在生成喂养建议，请稍候...</span>
+                </div>
+
+                <!-- 喂养指导内容 -->
+                <div id="feedingGuide" class="hidden">
+                    <div class="card">
+                        <h4>📋 每日营养需求</h4>
+                        <div id="nutritionContent">
+                            <p>点击上方"生成AI喂养建议"按钮获取个性化营养建议</p>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h4>🥗 食物推荐</h4>
+                        <div id="foodContent">
+                            <p>点击上方"生成AI喂养建议"按钮获取个性化食物推荐</p>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h4>💡 喂养技巧</h4>
+                        <div id="tipsContent">
+                            <p>点击上方"生成AI喂养建议"按钮获取个性化喂养技巧</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 系统设置页面 -->
+        <div id="settings" class="tab-content">
+            <!-- 百度OCR配置 -->
+            <div class="card cute-card">
+                <h3>🔑 百度OCR配置</h3>
+                <p>用于体检报告的图像识别功能</p>
+                
+                <div class="api-status">
+                    <div id="baiduOcrStatus" class="status-indicator"></div>
+                    <span id="baiduOcrStatusText">😴 未配置</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="baiduOcrApiKey">API Key:</label>
+                    <input type="password" id="baiduOcrApiKey" placeholder="请输入百度OCR API Key">
+                </div>
+
+                <div class="form-group">
+                    <label for="baiduOcrSecretKey">Secret Key:</label>
+                    <input type="password" id="baiduOcrSecretKey" placeholder="请输入百度OCR Secret Key">
+                </div>
+
+                <div class="api-input-group">
+                    <button id="saveBaiduOcrBtn" class="btn btn-primary">💾 保存配置</button>
+                    <button id="testBaiduOcrBtn" class="btn btn-secondary">🔧 测试连接</button>
+                </div>
+
+
+                <div class="info-box info">
+                    <h4>💡 百度OCR使用说明</h4>
+                    <ul>
+                        <li>需要在百度智能云申请OCR服务并获取API密钥</li>
+                        <li>支持中英文混合识别，准确率更高</li>
+                        <li>API密钥将安全保存在本地浏览器中</li>
+                        <li>可以访问 <a href="https://cloud.baidu.com/product/ocr" target="_blank">百度智能云OCR</a> 申请密钥</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- AI增强配置 -->
+            <div class="card cute-card">
+                <h3>🔑 AI增强配置</h3>
+                <p>用于智能解析识别结果和生成喂养建议</p>
+                
+                <div class="api-status">
+                    <div id="apiStatus" class="status-indicator"></div>
+                    <span id="apiStatusText">😴 未连接</span>
+                </div>
+
+                <div class="api-input-group">
+                    <input type="password" id="apiKeyInput" placeholder="请输入Deepseek API密钥">
+                    <button id="saveApiKeyBtn" class="btn btn-primary">💾 保存</button>
+                </div>
+
+                <div class="info-box info">
+                    <h4>💡 使用说明</h4>
+                    <ul>
+                        <li>需要有效的Deepseek API密钥才能使用AI增强功能</li>
+                        <li>API密钥将安全保存在本地浏览器中</li>
+                        <li>可以访问 <a href="https://platform.deepseek.com" target="_blank">Deepseek官网</a> 获取API密钥</li>
+                        <li>即使没有AI密钥，百度OCR识别功能仍然可用</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 数据管理 -->
+            <div class="card cute-card">
+                <h3>💾 数据管理</h3>
+                <p>您可以导出或导入所有数据</p>
+                
+                <div class="text-center">
+                    <button id="exportBtn2" class="btn btn-success">💾 导出数据</button>
+                    <button id="importBtn2" class="btn btn-success">📥 导入数据</button>
+                </div>
+
+                <div class="info-box warning">
+                    <h4>⚠️ 数据安全说明</h4>
+                    <ul>
+                        <li>所有数据仅保存在您的浏览器本地存储中</li>
+                        <li>数据不会上传到任何服务器</li>
+                        <li>建议定期导出备份重要数据</li>
+                        <li>清除浏览器数据可能会丢失所有记录</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 系统信息 -->
+            <div class="card cute-card">
+                <h3>📋 系统信息</h3>
+                <div id="systemInfo">
+                    <p><strong>🎀 版本：</strong>10.0 百度OCR版</p>
+                    <p><strong>📅 更新日期：</strong>2025-06-11</p>
+                    <p><strong>📊 数据标准：</strong>WHO 2006儿童生长标准</p>
+                </div>
+
+                <div class="info-box success">
+                    <h4>✨ 功能特点</h4>
+                    <ul>
+                        <li>🔍 百度OCR智能识别 - 支持中英文混合识别，准确率更高</li>
+                        <li>📊 自动计算WHO百分位数 - 精确到0.1月龄的线性插值</li>
+                        <li>✏️ 可编辑识别结果 - 修正识别错误，确保数据准确</li>
+                        <li>📈 生长曲线可视化展示 - 5条WHO标准线+个人曲线</li>
+                        <li>🤖 生成个性化喂养建议 - AI分析健康状况提供建议</li>
+                        <li>💾 数据本地存储和管理 - 安全可靠的数据备份</li>
+                    </ul>
+                </div>
+
+                <div class="info-box info">
+                    <h4>🔬 技术支持</h4>
+                    <ul>
+                        <li>🔍 OCR识别：百度智能云OCR (中英文混合)</li>
+                        <li>🤖 AI增强：Deepseek API</li>
+                        <li>📊 图表展示：Chart.js</li>
+                        <li>📈 百分位计算：WHO 2006标准 + 线性插值</li>
+                        <li>📋 数据标准：世界卫生组织儿童生长标准</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入JavaScript -->
+    <script src="baby-tracker.js"></script>
+</body>
+</html>

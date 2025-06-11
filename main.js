@@ -1,5 +1,6 @@
 const { app, BrowserWindow, Menu, dialog, shell } = require('electron');
 const path = require('path');
+const url = require('url');
 
 // 禁用安全警告
 process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
@@ -13,19 +14,28 @@ function createWindow() {
         minWidth: 800,
         minHeight: 600,
         webPreferences: {
-            nodeIntegration: false,
-            contextIsolation: true,
-            enableRemoteModule: false,
-            webSecurity: false,  // 允许加载本地资源
-            preload: path.join(__dirname, 'preload.js')
+            nodeIntegration: true,        // ← 改为true
+            contextIsolation: false,      // ← 改为false  
+            enableRemoteModule: true,     // ← 改为true
+            webSecurity: false,           // ← 禁用web安全
+            allowRunningInsecureContent: true,  // ← 允许不安全内容
+            experimentalFeatures: true    // ← 启用实验性功能
         },
         titleBarStyle: 'default',
         show: false,
         title: '婴幼儿健康追踪系统'
     });
 
-    // 加载应用
-    mainWindow.loadFile('src/baby.html');
+    // 使用URL加载而不是loadFile
+    const htmlPath = path.join(__dirname, 'src', 'baby.html');
+    const htmlUrl = url.format({
+        pathname: htmlPath,
+        protocol: 'file:',
+        slashes: true
+    });
+    
+    console.log('加载HTML URL:', htmlUrl);
+    mainWindow.loadURL(htmlUrl);
 
     // 窗口准备好后显示
     mainWindow.once('ready-to-show', () => {
@@ -35,135 +45,72 @@ function createWindow() {
         setTimeout(() => {
             dialog.showMessageBox(mainWindow, {
                 type: 'info',
-                title: '欢迎使用',
+                title: '应用启动成功',
                 message: '婴幼儿健康追踪系统',
-                detail: '🍼 基于WHO 2006标准的智能生长发育监测工具\n📊 所有数据本地存储，保护隐私安全\n🤖 支持OCR智能识别和AI营养指导\n\n✨ 这是离线桌面版，无需网络连接！',
+                detail: '🍼 应用已成功启动！\n📊 可以开始使用了',
                 buttons: ['开始使用'],
                 noLink: true
             });
         }, 1000);
     });
 
+    // 页面加载完成事件
+    mainWindow.webContents.once('dom-ready', () => {
+        console.log('DOM加载完成');
+    });
+
+    // 错误处理
+    mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
+        console.error('页面加载失败:', errorCode, errorDescription);
+    });
+
     // 窗口关闭时的处理
     mainWindow.on('closed', () => {
         mainWindow = null;
     });
-
-    // 阻止外部链接在应用内打开
-    mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-        shell.openExternal(url);
-        return { action: 'deny' };
-    });
 }
 
-// 创建菜单
+// 创建简化菜单
 function createMenu() {
-    const isMac = process.platform === 'darwin';
-    
     const template = [
-        ...(isMac ? [{
-            label: app.getName(),
-            submenu: [
-                { role: 'about', label: '关于' },
-                { type: 'separator' },
-                { role: 'services', label: '服务' },
-                { type: 'separator' },
-                { role: 'hide', label: '隐藏' },
-                { role: 'hideothers', label: '隐藏其他' },
-                { role: 'unhide', label: '显示全部' },
-                { type: 'separator' },
-                { role: 'quit', label: '退出' }
-            ]
-        }] : []),
         {
             label: '文件',
             submenu: [
                 {
-                    label: '导出数据...',
-                    accelerator: 'CmdOrCtrl+E',
+                    label: '刷新',
+                    accelerator: 'CmdOrCtrl+R',
                     click: () => {
-                        mainWindow.webContents.executeJavaScript('window.babyTracker?.exportData()');
+                        mainWindow.reload();
                     }
                 },
                 {
-                    label: '导入数据...',
-                    accelerator: 'CmdOrCtrl+I',
+                    label: '开发者工具',
+                    accelerator: 'CmdOrCtrl+Option+I',
                     click: () => {
-                        mainWindow.webContents.executeJavaScript('window.babyTracker?.importData()');
+                        mainWindow.webContents.toggleDevTools();
                     }
                 },
                 { type: 'separator' },
-                ...(!isMac ? [
-                    {
-                        label: '退出',
-                        accelerator: 'Ctrl+Q',
-                        click: () => app.quit()
+                {
+                    label: '退出',
+                    accelerator: process.platform === 'darwin' ? 'Cmd+Q' : 'Ctrl+Q',
+                    click: () => {
+                        app.quit();
                     }
-                ] : [])
-            ]
-        },
-        {
-            label: '编辑',
-            submenu: [
-                { role: 'undo', label: '撤销' },
-                { role: 'redo', label: '重做' },
-                { type: 'separator' },
-                { role: 'cut', label: '剪切' },
-                { role: 'copy', label: '复制' },
-                { role: 'paste', label: '粘贴' },
-                { role: 'selectall', label: '全选' }
-            ]
-        },
-        {
-            label: '查看',
-            submenu: [
-                { role: 'reload', label: '刷新' },
-                { role: 'forceReload', label: '强制刷新' },
-                { role: 'toggleDevTools', label: '开发者工具' },
-                { type: 'separator' },
-                { role: 'resetZoom', label: '实际大小' },
-                { role: 'zoomIn', label: '放大' },
-                { role: 'zoomOut', label: '缩小' },
-                { type: 'separator' },
-                { role: 'togglefullscreen', label: '全屏' }
-            ]
-        },
-        {
-            label: '窗口',
-            submenu: [
-                { role: 'minimize', label: '最小化' },
-                { role: 'close', label: '关闭' },
-                ...(isMac ? [
-                    { type: 'separator' },
-                    { role: 'front', label: '前置全部窗口' }
-                ] : [])
+                }
             ]
         },
         {
             label: '帮助',
             submenu: [
                 {
-                    label: '关于应用',
+                    label: '关于',
                     click: () => {
                         dialog.showMessageBox(mainWindow, {
                             type: 'info',
                             title: '关于',
-                            message: '婴幼儿健康追踪系统',
-                            detail: `版本：1.0.0
-基于WHO 2006标准
-支持OCR识别和AI分析
-
-🍼 功能特色：
-• 智能体检报告识别
-• WHO标准百分位计算  
-• 生长曲线可视化
-• AI个性化喂养指导
-• 数据本地安全存储
-
-💻 技术支持：
-Electron ${process.versions.electron}
-Chrome ${process.versions.chrome}
-Node.js ${process.versions.node}`,
+                            message: '婴幼儿健康追踪系统 v1.0.0',
+                            detail: '基于WHO 2006标准的智能生长发育监测工具',
                             buttons: ['确定'],
                             noLink: true
                         });
@@ -189,17 +136,9 @@ app.whenReady().then(() => {
     });
 });
 
-// 所有窗口关闭时退出应用（Mac除外）
+// 所有窗口关闭时退出应用
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
         app.quit();
     }
-});
-
-// 阻止导航到外部链接
-app.on('web-contents-created', (event, contents) => {
-    contents.on('new-window', (navigationEvent, navigationURL) => {
-        navigationEvent.preventDefault();
-        shell.openExternal(navigationURL);
-    });
 });
